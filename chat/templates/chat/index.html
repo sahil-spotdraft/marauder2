@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'chat/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1><i class="fas fa-brain"></i> {{ title }}</h1>
+                <div class="knowledge-base-info">
+                    {% if knowledge_base_available %}
+                        <span class="status-indicator online"></span>
+                        <span class="kb-stats">{{ total_chunks }} chunks • {{ total_files }} files</span>
+                    {% else %}
+                        <span class="status-indicator offline"></span>
+                        <span class="kb-stats">Knowledge base unavailable</span>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-lightbulb"></i> Suggestions</h3>
+                    <div class="suggestions-list">
+                        {% if suggestions %}
+                            {% for suggestion in suggestions %}
+                                <button class="suggestion-btn" onclick="sendSuggestion('{{ suggestion|escapejs }}')">
+                                    {{ suggestion }}
+                                </button>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-suggestions">No suggestions available</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if knowledge_base_available %}
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-chart-pie"></i> Knowledge Base</h3>
+                    <div class="kb-stats-detailed">
+                        {% for file_type, count in file_types.items %}
+                            <div class="stat-item">
+                                <span class="stat-label">{{ file_type|upper }}</span>
+                                <span class="stat-value">{{ count }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-cog"></i> Controls</h3>
+                    <div class="controls">
+                        <button class="control-btn" onclick="clearConversation()">
+                            <i class="fas fa-trash"></i> Clear Chat
+                        </button>
+                        <button class="control-btn" onclick="toggleDebug()">
+                            <i class="fas fa-bug"></i> <span id="debug-text">Enable Debug</span>
+                        </button>
+                        <button class="control-btn" onclick="downloadHistory()">
+                            <i class="fas fa-download"></i> Export Chat
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-container">
+                {% if not knowledge_base_available %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Knowledge Base Unavailable</h3>
+                        <p>The RAG system could not connect to the knowledge base. Please ensure:</p>
+                        <ul>
+                            <li>You have run <code>python fill_db.py</code> to create the knowledge base</li>
+                            <li>The ChromaDB files are accessible</li>
+                            <li>All required dependencies are installed</li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="welcome-message">
+                            <div class="message-content">
+                                <h2>🌍 Welcome to Universal RAG System</h2>
+                                <p>Ask me anything about your documents! I can help you with information from {{ total_files }} files across various formats.</p>
+                                <div class="quick-start">
+                                    <p><strong>Quick tips:</strong></p>
+                                    <ul>
+                                        <li>Ask specific questions about your content</li>
+                                        <li>Use follow-up questions - I remember our conversation</li>
+                                        <li>Try the suggestions in the sidebar</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-container">
+                        <!-- User Email Setup -->
+                        <div class="user-setup" id="userSetup" style="display: block;">
+                            <div class="setup-content">
+                                <h3><i class="fas fa-user"></i> Welcome! Let's personalize your experience</h3>
+                                <p>Enter your email to save your chat history and get personalized suggestions:</p>
+                                <div class="email-input-group">
+                                    <input 
+                                        type="email" 
+                                        id="userEmailInput" 
+                                        placeholder="your.email@company.com" 
+                                        autocomplete="email"
+                                    >
+                                    <button type="button" id="saveEmailButton">
+                                        <i class="fas fa-check"></i> Start Chatting
+                                    </button>
+                                </div>
+                                <div class="setup-options">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="rememberEmail" checked>
+                                        <span class="checkmark"></span>
+                                        Remember my email for future visits
+                                    </label>
+                                    <button type="button" id="continueAnonymous" class="anonymous-btn">
+                                        <i class="fas fa-user-secret"></i> Continue without email
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            AI is thinking...
+                        </div>
+                        <form class="chat-input-form" id="chatForm">
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    id="messageInput" 
+                                    placeholder="Ask me anything about your documents..." 
+                                    autocomplete="off"
+                                    maxlength="500"
+                                >
+                                <button type="submit" id="sendButton">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="input-info">
+                                <span class="char-count">0/500</span>
+                                <span class="context-info" id="contextInfo"></span>
+                                <span class="user-info" id="userInfo" style="display: none;"></span>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel" style="display: none;">
+        <div class="debug-header">
+            <h3><i class="fas fa-bug"></i> Debug Information</h3>
+            <button class="close-debug" onclick="toggleDebug()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="debug-content" id="debugContent">
+            <p>Debug information will appear here when you send a message.</p>
+        </div>
+    </div>
+
+    <script src="{% static 'chat/js/app.js' %}"></script>
+</body>
+</html>
