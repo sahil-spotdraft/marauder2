@@ -12,7 +12,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     
     # API endpoints
-    path('api/', views.ChatAPI.as_view(), name='chat_api'),
+    path('api', views.ChatAPI.as_view(), name='chat_api'),
     path('suggestions/', views.suggestions_api, name='suggestions_api'),
     path('health/', views.health_check, name='health_check'),
     path('debug/', views.debug_api, name='debug_api'),
@@ -21,4 +21,8 @@ urlpatterns = [
     path('user/history/', views.user_history_api, name='user_history_api'),
     path('user/feedback/', views.user_feedback_api, name='user_feedback_api'),
     path('user/stats/', views.user_stats_api, name='user_stats_api'),
+    
+    # Simple Action management endpoints
+    path('actions/', views.actions_list_api, name='actions_list_api'),
+    path('actions/test/', views.test_action_detection_api, name='test_action_detection_api'),
 ]

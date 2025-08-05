@@ -218,6 +218,8 @@ class ChatApp {
         this.scrollToBottom();
     }
     
+
+    
     updateCharCount() {
         const charCountElement = document.querySelector('.char-count');
         if (charCountElement && this.messageInput) {
@@ -277,16 +279,20 @@ class ChatApp {
             const response = await this.sendMessage(message);
             console.log(response);
             if (response.success) {
-                // Add AI response to UI
-                this.addMessage('ai', response.ai_response, {
+                // Add AI response to UI (same for both regular and action-detected responses)
+                const aiResponse = response.response;
+                this.addMessage('ai', aiResponse, {
                     complexity: response.complexity,
                     chunks: response.chunks_found,
-                    sources: response.retrieved_sources
+                    sources: response.retrieved_sources,
+                    action_id: response.action_id,
+                    question_id: response.question_id,
+                    action_detected: response.action_detected
                 });
                 
                 // Update conversation history (only for non-DB users)
                 if (!this.useDbHistory) {
-                    this.conversationHistory.push([message, response.ai_response]);
+                    this.conversationHistory.push([message, response.response]);
                     this.saveToStorage();
                 }
                 this.updateContextInfo();
@@ -322,7 +328,7 @@ class ChatApp {
             requestData.history = this.conversationHistory.slice(-3); // Send last 3 exchanges
         }
         
-        const response = await fetch('/api/', {
+        const response = await fetch('/api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -397,8 +403,17 @@ class ChatApp {
     }
     
     formatMessage(content) {
-        // Basic markdown formatting
+        // Basic markdown formatting with anchor tag support
         return content
+            // Handle markdown links first [text](url)
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+            // Handle plain URLs (http/https)
+            .replace(/(https?:\/\/[^\s<>"']+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
+            // Handle email addresses
+            .replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, '<a href="mailto:$1">$1</a>')
+            // Fix existing anchor tags to open in new tab if they don't already
+            .replace(/<a href="([^"]+)"(?![^>]*target=)/g, '<a href="$1" target="_blank" rel="noopener noreferrer"')
+            // Basic markdown formatting
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code>$1</code>')

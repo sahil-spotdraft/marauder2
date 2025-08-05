@@ -18,6 +18,7 @@ import uuid
 
 from .rag_service import RAGService
 from .models import ChatHistory, UserSession
+from actions.simple_action_detector import detect_action_from_query, get_all_actions
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ class ChatAPI(View):
         try:
             # Parse request
             data = json.loads(request.body)
-            user_query = data.get('query', '').strip()
+            user_query = data.get('user_query', data.get('query', '')).strip()  # Support both parameter names
             user_email = data.get('user_email', '').strip()
             session_id = data.get('session_id', None)
             use_db_history = data.get('use_db_history', True)
@@ -89,6 +90,14 @@ class ChatAPI(View):
                         'error': 'Invalid email address format'
                     }, status=400)
             
+            # Detect if this is an actionable query
+            action_detection = None
+            try:
+                action_detection = detect_action_from_query(user_query)
+            except Exception as e:
+                logger.warning(f"Action detection failed: {e}")
+                action_detection = None
+            
             # Get RAG service
             service = get_rag_service()
             if not service:
@@ -108,6 +117,26 @@ class ChatAPI(View):
             
             # Process query
             result = service.process_query(user_query, conversation_history)
+            
+            # Always rename 'ai_response' to 'response' for consistency
+            if result.get('success') and 'ai_response' in result:
+                result['response'] = result['ai_response']
+                del result['ai_response']  # Remove the old key
+            
+            # If action was detected, add action information to the response
+            if action_detection and result.get('success'):
+                result.update({
+                    'action_id': action_detection['action_id'],
+                    'question_id': action_detection['question_id'],
+                    'action_detected': True,
+                    'action_confidence': action_detection['confidence'],
+                    'action_method': action_detection['method'],
+                    'action_reasoning': action_detection['reasoning'],
+                    'action_info': {
+                        'name': action_detection['action_info']['name'],
+                        'description': action_detection['action_info']['description']
+                    }
+                })
             
             # Calculate response time
             response_time = int((time.time() - start_time) * 1000)
@@ -450,6 +479,79 @@ def user_stats_api(request):
         
     except Exception as e:
         logger.error(f"Error in user stats API: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error'
+        }, status=500)
+
+
+# Simple Action Management APIs
+
+@require_http_methods(["GET"])
+def actions_list_api(request):
+    """Get list of available actions"""
+    try:
+        actions = get_all_actions()
+        
+        return JsonResponse({
+            'success': True,
+            'actions': actions,
+            'total_actions': len(actions)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in actions list API: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Internal server error'
+        }, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt  
+def test_action_detection_api(request):
+    """Test action detection with a query"""
+    try:
+        data = json.loads(request.body)
+        query = data.get('query', data.get('user_query', '')).strip()
+        
+        if not query:
+            return JsonResponse({
+                'success': False,
+                'error': 'query is required'
+            }, status=400)
+        
+        # Test action detection
+        detection_result = detect_action_from_query(query)
+        
+        if detection_result:
+            return JsonResponse({
+                'success': True,
+                'query': query,
+                'action_id': detection_result['action_id'],
+                'question_id': detection_result['question_id'],
+                'confidence': detection_result['confidence'],
+                'method': detection_result['method'],
+                'reasoning': detection_result['reasoning'],
+                'action_info': detection_result['action_info']
+            })
+        else:
+            return JsonResponse({
+                'success': True,
+                'query': query,
+                'action_id': None,
+                'question_id': None,
+                'confidence': 0.0,
+                'message': 'No action detected for this query'
+            })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON in request body'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error in test action detection API: {str(e)}")
         return JsonResponse({
             'success': False,
             'error': 'Internal server error'

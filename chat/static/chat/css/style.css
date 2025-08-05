@@ -753,6 +753,61 @@ body {
     animation: fadeInUp 0.3s ease;
 }
 
+/* Link styling in chat messages */
+.message-bubble a {
+    color: #1976d2;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.message-bubble a:hover {
+    color: #0d47a1;
+    text-decoration: underline;
+}
+
+.message.ai .message-bubble a {
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.message.ai .message-bubble a:hover {
+    color: #0d47a1;
+    background-color: rgba(25, 118, 210, 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.message.user .message-bubble a {
+    color: white;
+    text-decoration: underline;
+}
+
+.message.user .message-bubble a:hover {
+    color: #e3f2fd;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Email links styling */
+.message-bubble a[href^="mailto:"] {
+    color: #388e3c;
+}
+
+.message-bubble a[href^="mailto:"]:hover {
+    color: #1b5e20;
+}
+
+/* External link icon */
+.message-bubble a[target="_blank"]::after {
+    content: " ↗";
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-left: 2px;
+}
+
+
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 6px;

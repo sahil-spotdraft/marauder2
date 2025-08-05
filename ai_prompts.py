@@ -152,81 +152,21 @@ def determine_query_complexity(query):
 def create_enhanced_system_prompt(file_types, content_types, retrieved_sources, 
                                 query_complexity, retrieved_file_types, results):
     """
-    Create a comprehensive system prompt for the AI assistant
-    
-    Args:
-        file_types: Dictionary of available file types in the knowledge base
-        content_types: Dictionary of available content types
-        retrieved_sources: Set of source files that matched the query
-        query_complexity: String indicating query complexity level
-        retrieved_file_types: Counter of file types in retrieved results
-        results: The actual retrieved document results
-    
-    Returns:
-        String containing the complete system prompt
+    Create a simple system prompt for the AI assistant to just give a summary and all steps from the context.
     """
-    
-    system_prompt = f"""You are a helpful AI assistant with access to a universal knowledge base containing diverse file types and content formats. You answer questions based ONLY on the provided information from the user's files.
+    system_prompt = f"""You are an AI assistant. Using only the information below, provide:
+- A brief summary of the context.
+- All step-by-step instructions or procedures found in the context, in order, with no extra commentary.
+- Relevant links to the context, put these into anchor tags.
 
-The content includes:
-- File formats: {', '.join(file_types.keys())}
-- Content types: {', '.join(content_types.keys())}
-- Sources: {', '.join(sorted(retrieved_sources))}
-
-Query complexity: {query_complexity}
-Retrieved content spans: {', '.join(retrieved_file_types.keys())}
-
-Here is the relevant information:
+Context:
 --------------------
 {str(results['documents'])}
 --------------------
 
-CRITICAL INSTRUCTIONS FOR COMPLETE ANSWERS:
-
-⚠️  ABSOLUTE REQUIREMENT: You have ALL the information needed in the provided chunks. NEVER say "Missing Step" or "follow steps above" or leave any step incomplete. Every step mentioned in the chunks MUST be included with full details.
-
-When assembling procedures, look through ALL chunks to find complete step details. The information is distributed across multiple chunks - your job is to assemble it completely.
-
-1. **For Step-by-Step Procedures**: You MUST provide ALL steps mentioned in the retrieved content. Look across all chunks to find the complete sequence. Do not stop at partial steps.
-
-2. **Sequential Assembly**: If you see "Step 1", "Step 2", etc. scattered across different chunks, assemble them in the correct order and include ALL numbered steps found.
-
-3. **Missing Steps Warning**: If you notice gaps in step sequences (like Step 1, 2, 3, then Step 6), explicitly mention what's missing.
-
-4. **Complete Procedures**: For "how to" questions, provide the FULL process from start to finish, including setup, execution, and completion steps.
-
-5. **Verification**: Before finishing your answer, verify you've included all steps/information present in the retrieved chunks.
-
-6. **Reference Resolution**: When you see phrases like "Follow the same steps outlined in sections X and Y above" or "as mentioned in step Z", you MUST find and include the actual detailed content from those referenced sections. Do not leave vague references - provide the complete information.
-
-   EXAMPLE: If you see "Follow the same steps outlined in sections 4 and 5 above", look through ALL chunks to find the detailed Step 4 and Step 5 content and include it completely. Never write "[Missing Step]" or "follow steps above" - always provide the actual step details.
-
-7. **Content Type Awareness**: 
-   - For CODE content: Explain functionality and provide context
-   - For DATA content (JSON/CSV): Explain data structure and relationships
-   - For PROCEDURES: Ensure all steps are in correct order with complete details
-   - For LISTS: Include all items and their descriptions
-   - For FAQ: Provide complete question-answer pairs
-
-8. **Source Attribution**: When referencing specific information, mention the source file when helpful for user context.
-
-9. **Detail Extraction**: Extract ALL specific details from chunks, including:
-   - Exact button/tab names (e.g., "Access Control" tab, "Set default signatories for New Contract Type" tab)
-   - Specific options and roles (e.g., Creators, Viewers, Suggestors, Editors, Signatories)
-   - Precise instructions and sub-steps
-   - UI element names and locations
-
-10. **Completeness Check**: Before providing your final answer, mentally verify:
-    - Have I included all numbered steps found in the chunks?
-    - Have I resolved all cross-references to other sections?
-    - Are there any partial sentences or cut-off information I should complete from other chunks?
-    - Have I included all specific details (button names, tab names, roles, etc.)?
-    - Does my answer fully address what the user asked with complete information?
-
-Please provide a comprehensive answer based on this information."""
-
+Only include the summary, the relevant links at the end, and the complete steps as found in the context. Do not add extra explanations or formatting. Do not reference document numbers or sources. Do not speculate or add missing steps. Just present the summary and all steps as they appear.
+"""
     return system_prompt
-
 def create_specialized_prompts():
     """
     Create specialized prompts for different types of content and queries

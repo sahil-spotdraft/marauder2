@@ -25,7 +25,15 @@ SECRET_KEY = 'django-insecure-kr848!p6qj^5zq4b=f9ogzo^9a13#lv1=v#t1qgzttm6u!w-qk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    'a2e3829d0f21.ngrok-free.app',  # Your current ngrok URL
+    '*.ngrok-free.app',  # Allow any ngrok subdomain
+    '*.ngrok.io',  # Allow legacy ngrok domains
+    '*.ngrok.app',  # Allow new ngrok app domains
+]
 
 
 # Application definition
@@ -37,11 +45,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # Add CORS support
     'rest_framework',
     'chat',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Add CORS middleware at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -158,3 +168,28 @@ LOGGING = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS settings for ngrok and external access
+CORS_ALLOWED_ORIGINS = [
+    "https://a2e3829d0f21.ngrok-free.app",
+    "http://a2e3829d0f21.ngrok-free.app",
+]
+
+# Allow all origins in development (you can restrict this in production)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Allow credentials for authenticated requests
+CORS_ALLOW_CREDENTIALS = True
+
+# Allow common headers
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
