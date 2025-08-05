@@ -157,7 +157,7 @@ def create_enhanced_system_prompt(file_types, content_types, retrieved_sources,
     system_prompt = f"""You are an AI assistant. Using only the information below, provide:
 - A brief summary of the context.
 - All step-by-step instructions or procedures found in the context, in order, with no extra commentary.
-- Relevant links to the context, put these into anchor tags.
+- Relevant links to the context if present other wise don't include a Relevant Links section".
 
 Context:
 --------------------

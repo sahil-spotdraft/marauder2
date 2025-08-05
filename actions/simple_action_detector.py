@@ -42,75 +42,22 @@ class SimpleActionDetector:
                     "give user access to contract type"
                 ]
             },
-            "create_contract": {
-                "name": "Create New Contract",
-                "description": "Create a new contract from scratch or using templates",
-                "keywords": ["create", "new", "contract", "make", "generate", "draft", "template"],
+            "update_contract_metadata_value": {
+                "name": "Update Contract Metadata Value",
+                "description": "Update the value of a specific metadata field for a contract",
+                "keywords": ["update", "contract", "metadata", "value", "field", "change", "modify", "key_pointer"],
                 "patterns": [
-                    r"create.*new.*contract",
-                    r"make.*contract",
-                    r"generate.*contract",
-                    r"draft.*contract",
-                    r"new.*contract",
-                    r"contract.*template"
+                    r"update.*contract.*metadata.*value",
+                    r"update.*contract.*metadata.*key_pointer",
+                    r"update.*contract.*metadata.*field",
+                    r"update.*contract.*metadata.*change",
+                    r"update.*contract.*metadata.*modify"
                 ],
                 "example_queries": [
-                    "create new contract",
-                    "make a contract",
-                    "how to create contract",
-                    "generate contract from template"
-                ]
-            },
-            "setup_workflow": {
-                "name": "Setup Workflow",
-                "description": "Configure and setup new workflows for contract processing",
-                "keywords": ["setup", "workflow", "configure", "process", "approval", "create", "new"],
-                "patterns": [
-                    r"setup.*workflow",
-                    r"create.*workflow",
-                    r"configure.*workflow",
-                    r"workflow.*setup",
-                    r"new.*workflow",
-                    r"approval.*workflow"
-                ],
-                "example_queries": [
-                    "setup new workflow",
-                    "create workflow",
-                    "how to setup workflow",
-                    "configure approval workflow"
-                ]
-            },
-            "delete_contract": {
-                "name": "Delete Contract",
-                "description": "Delete or remove an existing contract",
-                "keywords": ["delete", "remove", "contract", "cancel", "terminate"],
-                "patterns": [
-                    r"delete.*contract",
-                    r"remove.*contract",
-                    r"cancel.*contract",
-                    r"terminate.*contract"
-                ],
-                "example_queries": [
-                    "delete contract",
-                    "remove contract",
-                    "how to delete contract"
-                ]
-            },
-            "manage_roles": {
-                "name": "Manage User Roles",
-                "description": "Manage user roles and permissions",
-                "keywords": ["role", "permission", "manage", "user", "access", "rights"],
-                "patterns": [
-                    r"manage.*role",
-                    r"user.*role",
-                    r"permission",
-                    r"access.*rights",
-                    r"manage.*user.*access"
-                ],
-                "example_queries": [
-                    "manage user roles",
-                    "change user permissions",
-                    "user access rights"
+                    "update contract metadata value",
+                    "how can I update contract metadata value",
+                    "update contract metadata field",
+                    "update contract metadata key_pointer"
                 ]
             }
         }
